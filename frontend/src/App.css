@@ -54,3 +54,37 @@ button{
   background:transparent;
   border:1px solid #5B6CFF;
 }
+.upload-box{
+  width:500px;
+  background:#121933;
+  padding:40px;
+  border-radius:20px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.upload-box h1{
+  text-align:center;
+}
+
+.upload-box p{
+  text-align:center;
+  color:#b8c0d4;
+}
+
+.upload-box label{
+  font-weight:bold;
+}
+
+.upload-box input{
+  padding:14px;
+  border-radius:10px;
+  border:none;
+  background:#1A2344;
+  color:white;
+}
+
+.upload-box button{
+  margin-top:10px;
+}
