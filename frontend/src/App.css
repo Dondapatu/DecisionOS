@@ -88,3 +88,57 @@ button{
 .upload-box button{
   margin-top:10px;
 }
+.dashboard{
+  width:90%;
+  max-width:1200px;
+}
+
+.cards{
+  display:flex;
+  gap:20px;
+  margin:30px 0;
+}
+
+.card{
+  flex:1;
+  background:#121933;
+  padding:30px;
+  border-radius:18px;
+  text-align:center;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:#121933;
+  border-radius:18px;
+  overflow:hidden;
+}
+
+th,td{
+  padding:18px;
+  text-align:left;
+}
+
+th{
+  background:#1A2344;
+}
+
+tr{
+  border-bottom:1px solid #202B50;
+}
+.workspace{
+  width:90%;
+  max-width:1200px;
+}
+
+.workspace h1{
+  margin-bottom:10px;
+}
+
+.workspace p{
+  color:#b8c0d4;
+}
+tbody tr:hover{
+  background:#1A2344;
+}
