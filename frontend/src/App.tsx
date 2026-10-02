@@ -1,8 +1,10 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import Home from "./pages/Home";
 import Upload from "./pages/Upload";
 import Dashboard from "./pages/Dashboard";
 import JobWorkspace from "./pages/JobWorkspace";
+import Candidate from "./pages/Candidate";
 
 function App() {
   return (
@@ -12,6 +14,7 @@ function App() {
         <Route path="/upload" element={<Upload />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/job/:id" element={<JobWorkspace />} />
+        <Route path="/candidate/:id" element={<Candidate />} />
       </Routes>
     </BrowserRouter>
   );

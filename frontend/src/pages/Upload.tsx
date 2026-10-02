@@ -5,30 +5,61 @@ import "../App.css";
 function Upload() {
   const [jobName, setJobName] = useState("");
   const [skills, setSkills] = useState("");
+  const [files, setFiles] = useState<FileList | null>(null);
+
   const navigate = useNavigate();
 
   async function handleSubmit() {
-    if (!jobName || !skills) {
-      alert("Please fill all fields.");
+    if (!jobName || !skills || !files || files.length === 0) {
+      alert("Please fill all fields and select at least one file.");
       return;
     }
 
-    const response = await fetch("http://127.0.0.1:8000/jobs", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        job_name: jobName,
-        skills: skills,
-      }),
-    });
+    try {
+      // Step 1: Create Job
+      const jobRes = await fetch("http://127.0.0.1:8000/jobs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          job_name: jobName,
+          skills: skills,
+        }),
+      });
 
-    const data = await response.json();
+      const job = await jobRes.json();
 
-    alert(`Job Created!\nID: ${data.id}`);
+      // Step 2: Upload Files
+      const formData = new FormData();
 
-    navigate("/dashboard");
+      for (let i = 0; i < files.length; i++) {
+        formData.append("files", files[i]);
+      }
+
+      const uploadRes = await fetch(
+        `http://127.0.0.1:8000/jobs/${job.id}/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const result = await uploadRes.json();
+
+      if (!uploadRes.ok) {
+        alert("Upload failed.");
+        console.log(result);
+        return;
+      }
+
+      alert(`Uploaded ${result.count} file(s) successfully!`);
+
+      navigate(`/job/${job.id}`);
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong.");
+    }
   }
 
   return (
@@ -53,8 +84,19 @@ function Upload() {
           onChange={(e) => setSkills(e.target.value)}
         />
 
-        <label>Upload Resume ZIP</label>
-        <input type="file" accept=".zip,.pdf" />
+        <label>Upload Resumes</label>
+        <input
+          type="file"
+          multiple
+          accept=".pdf,.zip"
+          onChange={(e) => setFiles(e.target.files)}
+        />
+
+        {files && (
+          <p style={{ color: "#b8c0d4", marginTop: "10px" }}>
+            {files.length} file(s) selected
+          </p>
+        )}
 
         <button onClick={handleSubmit}>Start Review</button>
       </div>
