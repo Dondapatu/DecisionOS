@@ -15,6 +15,7 @@ from database import get_connection, init_db
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_ROOT = os.path.join(BASE_DIR, "uploads")
 
+
 # ==================================================
 # APP
 # ==================================================
@@ -38,12 +39,19 @@ app.add_middleware(
 
 
 # ==================================================
-# JOB MODEL
+# JOB MODELS
 # ==================================================
 
 class ReviewJob(BaseModel):
     job_name: str
     skills: str
+    job_description: str | None = None
+
+
+class UpdateJob(BaseModel):
+    job_name: str | None = None
+    skills: str | None = None
+    job_description: str | None = None
 
 
 # ==================================================
@@ -71,14 +79,21 @@ def create_job(job: ReviewJob):
     conn.execute(
         """
         INSERT INTO jobs
-        (id, job_name, skills, status)
-        VALUES (?, ?, ?, ?)
+        (
+            id,
+            job_name,
+            skills,
+            status,
+            job_description
+        )
+        VALUES (?, ?, ?, ?, ?)
         """,
         (
             job_id,
             job.job_name,
             job.skills,
-            "Created"
+            "Created",
+            job.job_description
         )
     )
 
@@ -89,6 +104,7 @@ def create_job(job: ReviewJob):
         "id": job_id,
         "job_name": job.job_name,
         "skills": job.skills,
+        "job_description": job.job_description,
         "status": "Created"
     }
 
@@ -147,6 +163,87 @@ def get_job(job_id: str):
 
 
 # ==================================================
+# UPDATE JOB
+# ==================================================
+
+@app.patch("/jobs/{job_id}")
+def update_job(
+    job_id: str,
+    job: UpdateJob
+):
+
+    conn = get_connection()
+
+    existing_job = conn.execute(
+        """
+        SELECT *
+        FROM jobs
+        WHERE id = ?
+        """,
+        (job_id,)
+    ).fetchone()
+
+    if not existing_job:
+        conn.close()
+
+        return {
+            "error": "Job not found"
+        }
+
+    current_job = dict(existing_job)
+
+    job_name = (
+        job.job_name
+        if job.job_name is not None
+        else current_job["job_name"]
+    )
+
+    skills = (
+        job.skills
+        if job.skills is not None
+        else current_job["skills"]
+    )
+
+    job_description = (
+        job.job_description
+        if job.job_description is not None
+        else current_job.get("job_description")
+    )
+
+    conn.execute(
+        """
+        UPDATE jobs
+        SET
+            job_name = ?,
+            skills = ?,
+            job_description = ?
+        WHERE id = ?
+        """,
+        (
+            job_name,
+            skills,
+            job_description,
+            job_id
+        )
+    )
+
+    conn.commit()
+
+    updated_job = conn.execute(
+        """
+        SELECT *
+        FROM jobs
+        WHERE id = ?
+        """,
+        (job_id,)
+    ).fetchone()
+
+    conn.close()
+
+    return dict(updated_job)
+
+
+# ==================================================
 # UPLOAD RESUMES
 # ==================================================
 
@@ -156,10 +253,12 @@ pipeline_lock = Lock()
 
 
 def run_processing_pipeline(job_id: str):
+
     if not pipeline_lock.acquire(blocking=False):
         return
 
     try:
+
         import sys
 
         workers_path = os.path.join(
@@ -172,8 +271,13 @@ def run_processing_pipeline(job_id: str):
 
         import importlib
 
-        extract_worker = importlib.import_module("extract_worker")
-        score_worker = importlib.import_module("score_worker")
+        extract_worker = importlib.import_module(
+            "extract_worker"
+        )
+
+        score_worker = importlib.import_module(
+            "score_worker"
+        )
 
         extract_resume = extract_worker.process_resume
         score_resume = score_worker.process_resume
@@ -181,15 +285,19 @@ def run_processing_pipeline(job_id: str):
         # -----------------------------
         # STEP 1: Extract resumes
         # -----------------------------
+
         conn = get_connection()
 
-        resumes = conn.execute("""
+        resumes = conn.execute(
+            """
             SELECT *
             FROM resumes
             WHERE job_id = ?
               AND processing_stage = 'Queued'
             ORDER BY id
-        """, (job_id,)).fetchall()
+            """,
+            (job_id,)
+        ).fetchall()
 
         conn.close()
 
@@ -199,9 +307,11 @@ def run_processing_pipeline(job_id: str):
         # -----------------------------
         # STEP 2: Score resumes
         # -----------------------------
+
         conn = get_connection()
 
-        resumes = conn.execute("""
+        resumes = conn.execute(
+            """
             SELECT *
             FROM resumes
             WHERE job_id = ?
@@ -209,7 +319,9 @@ def run_processing_pipeline(job_id: str):
               AND extracted_text IS NOT NULL
               AND extracted_text != ''
             ORDER BY id
-        """, (job_id,)).fetchall()
+            """,
+            (job_id,)
+        ).fetchall()
 
         conn.close()
 
@@ -217,20 +329,31 @@ def run_processing_pipeline(job_id: str):
             score_resume(resume)
 
     except Exception as e:
-        print("Pipeline error:", e)
+
+        print(
+            "Pipeline error:",
+            e
+        )
 
     finally:
+
         pipeline_lock.release()
 
 
 @app.post("/jobs/{job_id}/upload")
 async def upload_resumes(
     job_id: str,
-    files: Annotated[list[UploadFile], File()],
+    files: Annotated[
+        list[UploadFile],
+        File()
+    ],
     background_tasks: BackgroundTasks
 ):
 
-    upload_dir = os.path.join(UPLOAD_ROOT, job_id)
+    upload_dir = os.path.join(
+        UPLOAD_ROOT,
+        job_id
+    )
 
     os.makedirs(
         upload_dir,
@@ -379,8 +502,14 @@ def get_resume(resume_id: int):
         "error": "Resume not found"
     }
 
+
+# ==================================================
+# VIEW ORIGINAL RESUME
+# ==================================================
+
 @app.get("/resume/{resume_id}/file")
 def view_resume_file(resume_id: int):
+
     conn = get_connection()
 
     row = conn.execute(
@@ -395,7 +524,9 @@ def view_resume_file(resume_id: int):
     conn.close()
 
     if not row:
-        return {"error": "Resume not found"}
+        return {
+            "error": "Resume not found"
+        }
 
     job_id = row["job_id"]
     filename = row["filename"]
@@ -409,15 +540,20 @@ def view_resume_file(resume_id: int):
     )
 
     if not os.path.isfile(file_path):
-        return {"error": "Resume file not found"}
+
+        return {
+            "error": "Resume file not found"
+        }
 
     return FileResponse(
         path=file_path,
         media_type="application/pdf",
         headers={
-            "Content-Disposition": f'inline; filename="{safe_filename}"'
+            "Content-Disposition":
+                f'inline; filename="{safe_filename}"'
         }
     )
+
 
 # ==================================================
 # UPDATE RESUME STATUS
@@ -459,11 +595,12 @@ def update_resume_status(
 @app.post("/jobs/{job_id}/sync")
 def sync_resumes(job_id: str):
 
-    upload_dir = os.path.join(UPLOAD_ROOT, job_id)
+    upload_dir = os.path.join(
+        UPLOAD_ROOT,
+        job_id
+    )
 
-    if not os.path.exists(
-        upload_dir
-    ):
+    if not os.path.exists(upload_dir):
 
         return {
             "message": "Upload folder not found"

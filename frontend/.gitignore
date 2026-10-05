@@ -1,24 +1,15 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+@'
+venv/
+node_modules/
+__pycache__/
+.env
+dist/
+build/
+*.pyc
 
-node_modules
-dist
-dist-ssr
-*.local
+# Local database
+*.db
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Uploaded resumes
+backend/uploads/
+'@ | Set-Content -Encoding UTF8 .gitignore

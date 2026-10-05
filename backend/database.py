@@ -46,6 +46,14 @@ def init_db():
         )
     """)
 
+    # Optional Job Description
+    add_column_if_missing(
+        conn,
+        "jobs",
+        "job_description",
+        "TEXT"
+    )
+
     # -------------------------
     # RESUMES TABLE
     # -------------------------
@@ -153,9 +161,17 @@ def init_db():
     add_column_if_missing(
         conn,
         "resumes",
+        "jd_relevance",
+        "REAL"
+    )
+
+    add_column_if_missing(
+        conn,
+        "resumes",
         "ai_recommendation",
         "TEXT DEFAULT 'Review'"
     )
+
 
     conn.commit()
     conn.close()

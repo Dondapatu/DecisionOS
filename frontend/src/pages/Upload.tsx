@@ -5,13 +5,14 @@ import "../App.css";
 function Upload() {
   const [jobName, setJobName] = useState("");
   const [skills, setSkills] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
   const [files, setFiles] = useState<FileList | null>(null);
 
   const navigate = useNavigate();
 
   async function handleSubmit() {
     if (!jobName || !skills || !files || files.length === 0) {
-      alert("Please fill all fields and select at least one file.");
+      alert("Please fill all required fields and select at least one file.");
       return;
     }
 
@@ -25,10 +26,17 @@ function Upload() {
         body: JSON.stringify({
           job_name: jobName,
           skills: skills,
+          job_description: jobDescription || null,
         }),
       });
 
       const job = await jobRes.json();
+
+      if (!jobRes.ok) {
+        alert("Job creation failed.");
+        console.log(job);
+        return;
+      }
 
       // Step 2: Upload Files
       const formData = new FormData();
@@ -82,6 +90,27 @@ function Upload() {
           placeholder="Python, React, SQL"
           value={skills}
           onChange={(e) => setSkills(e.target.value)}
+        />
+
+        <label>
+          Job Description <span style={{ color: "#8b95aa" }}>(Optional)</span>
+        </label>
+
+        <textarea
+          placeholder="Describe the role, responsibilities, experience, and requirements..."
+          value={jobDescription}
+          onChange={(e) => setJobDescription(e.target.value)}
+          rows={6}
+          style={{
+            width: "100%",
+            boxSizing: "border-box",
+            resize: "vertical",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #dbe3ef",
+            fontFamily: "inherit",
+            fontSize: "14px",
+          }}
         />
 
         <label>Upload Resumes</label>
