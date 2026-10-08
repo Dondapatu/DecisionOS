@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import API_BASE_URL from "../config";
 import "../App.css";
 
 interface CandidateData {
@@ -36,7 +37,7 @@ function Candidate() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/resume/${id}`)
+    fetch(`${API_BASE_URL}/resume/${id}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error("Candidate not found");
@@ -441,7 +442,7 @@ function Candidate() {
               className="resume-button"
               onClick={() => {
                 window.open(
-                  `http://127.0.0.1:8000/resume/${candidate.id}/file`,
+                  `${API_BASE_URL}/resume/${candidate.id}/file`,
                   "_blank"
                 );
               }}

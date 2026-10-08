@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import API_BASE_URL from "../config";
 import { useParams, useNavigate } from "react-router-dom";
 import "../App.css";
+
 
 interface Job {
   id: string;
@@ -56,14 +58,14 @@ function JobWorkspace() {
         return;
       }
 
-      fetch(`http://127.0.0.1:8000/jobs/${id}`)
+      fetch(`${API_BASE_URL}/jobs/${id}`)
         .then((res) => res.json())
         .then((data) => setJob(data))
         .catch((error) => {
           console.error("Failed to load job:", error);
         });
 
-      fetch(`http://127.0.0.1:8000/jobs/${id}/resumes`)
+      fetch(`${API_BASE_URL}/jobs/${id}/resumes`)
         .then((res) => res.json())
         .then((data) => setResumes(data))
         .catch((error) => {
@@ -121,7 +123,7 @@ function JobWorkspace() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/jobs/${id}`,
+        `${API_BASE_URL}/jobs/${id}`,
         {
           method: "PATCH",
           headers: {
@@ -200,7 +202,7 @@ function JobWorkspace() {
       });
 
       const response = await fetch(
-        `http://127.0.0.1:8000/jobs/${id}/upload`,
+        `${API_BASE_URL}/jobs/${id}/upload`,
         {
           method: "POST",
           body: formData,

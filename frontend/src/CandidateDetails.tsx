@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import API_BASE_URL from "./config";
 import { useNavigate, useParams } from "react-router-dom";
 import "./App.css";
 
@@ -50,7 +51,7 @@ function CandidateDetails() {
       return;
     }
 
-    fetch(`http://127.0.0.1:8000/resume/${id}`)
+    fetch(`${API_BASE_URL}/resume/${id}`)
       .then((response) => {
         if (!response.ok) {
           throw new Error("Candidate not found");
@@ -151,7 +152,7 @@ function CandidateDetails() {
 
   function viewOriginalResume() {
     window.open(
-      `http://127.0.0.1:8000/resume/${currentCandidate.id}/file`,
+      `${API_BASE_URL}/resume/${currentCandidate.id}/file`,
       "_blank"
     );
   }

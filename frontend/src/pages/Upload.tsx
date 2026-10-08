@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API_BASE_URL from "../config";
 import "../App.css";
 
 function Upload() {
@@ -18,7 +19,7 @@ function Upload() {
 
     try {
       // Step 1: Create Job
-      const jobRes = await fetch("http://127.0.0.1:8000/jobs", {
+      const jobRes = await fetch(`${API_BASE_URL}/jobs`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,7 +47,7 @@ function Upload() {
       }
 
       const uploadRes = await fetch(
-        `http://127.0.0.1:8000/jobs/${job.id}/upload`,
+        `${API_BASE_URL}/jobs/${job.id}/upload`,
         {
           method: "POST",
           body: formData,
